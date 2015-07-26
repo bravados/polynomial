@@ -1,4 +1,4 @@
-# polinomi
+# polynomial
 
 Permite trabajar con polinomios de grado indefinido y tipo genérico (enteros, reales, coma flotante).
 
