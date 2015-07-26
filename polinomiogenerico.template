@@ -1,0 +1,352 @@
+#include <cassert>
+
+int max(int n1, int n2){
+	if(n1>n2) return n1;
+	
+	else
+		return n2;
+}
+
+
+template<typename T>
+Polinomio<T>::Polinomio(){
+	p=0;
+	res=0;
+	util=0;
+}
+
+
+template<typename T>
+Polinomio<T>::Polinomio(const Polinomio<T> &P){
+	p=new T [P.res*2];
+	for(int i=0; i<P.util; i++)
+		p[i]=P.p[i];
+
+	res=P.res;
+	util=P.util;
+}
+
+
+
+template<typename T>
+Polinomio<T>::Polinomio(int n, T v[]){
+	res=n*2;
+	p=new T [res];
+	util=n;
+	for(int i=0; i<util; i++)
+		p[i]=v[util-1-i];	//recibe de la forma x²+x+1 y escribe de la forma 1+x+x²
+}
+
+
+
+template<typename T>
+Polinomio<T> & Polinomio<T>::operator=(const Polinomio<T> &P){
+	if(p!=0){
+		if(res<P.util)	//si no cabe reservo más
+			{
+			delete [] p;
+			res=P.res*2;
+			p=new T [res];
+			}
+		}
+	else
+	{
+		res=P.res*2;
+		p=new T [res];
+	}
+	
+	for(int i=0; i<P.util; i++)
+		p[i]=P.p[i];
+
+	
+	util=P.util;
+}
+
+
+template<typename T>
+bool Polinomio<T>::operator==(const Polinomio &P) const {
+	if(P.util!=util)
+		return false;
+	for(int i=0; i<util; i++)
+		if(p[i]!=P.p[i])
+			return false;
+	return true;
+}
+
+
+
+template<typename T>
+bool Polinomio<T>::operator!=(const Polinomio<T> &P) const {
+	if(P.util!=util)
+		return true;
+	for(int i=0; i<util; i++)
+		if(p[i]!=P.p[i])
+			return true;
+	return false;
+}
+
+
+template<typename T>
+bool Polinomio<T>::operator>(const Polinomio<T> &P) const {
+	if(util<P.util)
+		return false;
+	if(util==P.util)
+		return p[util-1]>P.p[util-1];
+	return true;
+}
+
+
+template<typename T>
+bool Polinomio<T>::operator>=(const Polinomio &P) const {
+	if(*this==P)
+		return true;
+	if(*this>P)
+		return true;
+	return false;
+}
+
+
+
+template<typename T>
+bool Polinomio<T>::operator<(const Polinomio &P) const {
+	if(util>P.util)
+		return false;
+	if(util==P.util)
+		return p[util-1]<P.p[util-1];
+	return true;
+}
+
+
+
+template<typename T>
+bool Polinomio<T>::operator<=(const Polinomio &P) const {
+	if(*this==P)
+		return true;
+	if(*this<P)
+		return true;
+}
+	
+
+
+template<typename T>
+Polinomio<T> Polinomio<T>::operator+(const Polinomio &P) const {
+	
+	if(P.util!=0)	
+	{
+	Polinomio aux;
+	aux.res=max(res,P.res);
+	aux.p=new T [aux.res];
+	
+	for(int i=0; i<util && i<P.util; i++)
+		aux.p[i]=p[i]+P.p[i];
+	if(P.util>util)
+		{
+			for(int i=util; i<P.util; i++)
+				aux.p[i]=P.p[i];
+			aux.util=P.util;
+		}
+	if(util>P.util)
+		{
+			for(int i=P.util; i<util; i++)
+				aux.p[i]=p[i];
+			aux.util=util;
+		}
+	return aux;
+	}
+	
+	else
+	{
+		Polinomio aux(*this);
+		return aux;
+	}
+}
+
+
+
+
+template<typename T>
+Polinomio<T> Polinomio<T>::operator-(const Polinomio &P) const {
+	if(P.util!=0)	
+	{
+	Polinomio aux;
+	aux.res=max(res,P.res);
+	aux.p=new T [aux.res];
+	
+	for(int i=0; i<util && i<P.util; i++)
+		aux.p[i]=p[i]-P.p[i];
+	if(P.util>=util)
+		{
+			for(int i=util; i<P.util; i++)
+				aux.p[i]=P.p[i]*(-1);
+			aux.util=P.util;
+		}
+	if(util>P.util)
+		{
+			for(int i=P.util; i<util; i++)
+				aux.p[i]=p[i];
+			aux.util=util;
+		}
+int n=util-1;
+while(aux.p[n]==0)
+{
+	aux.util--;	//para bajar el grado si los primeros coeficientes son 0
+	n--;
+}
+return aux;
+	}
+	
+	else
+	{
+		Polinomio aux(*this);
+		return aux;
+	}
+}
+
+
+
+template<typename T>
+Polinomio<T> Polinomio<T>::operator*(const Polinomio &P) const {
+	Polinomio aux;
+	aux.util=util*P.util;
+	aux.res=aux.util+util;	//reservamos un poco mas para evitar futuras reservas
+	aux.p=new T [aux.res];
+	
+	for(int i=0; i<res; i++)
+		aux.p[i]=0;
+	
+	for(int i=0; i<util; i++)
+		for(int j=0; j<P.util; j++)
+			aux.p[i+j]=aux.p[i+j]+p[i]*P.p[j];
+return aux;
+}
+
+
+
+
+template<typename T>
+Polinomio<T> Polinomio<T>::operator/(const Polinomio &P) const {
+	assert(util>P.util);
+
+			int util2=util-1;
+	
+			Polinomio aux;
+			aux.res=(util-P.util)*2;
+			aux.p=new T [aux.res];
+			aux.util=util-P.util+1;
+			
+			for(int i=0; i<aux.res; i++)
+				aux.p[i]=0;
+			
+			Polinomio ddo=*this;
+			Polinomio dsor=P;
+			Polinomio dsor_aux;	//divisor temporal para hacer cociente*divisor y restarselo al dividendo 
+			dsor_aux.res=ddo.util; 	//como mucho va a tener el mismo grado que le dividendo
+			dsor_aux.p=new T [dsor_aux.res];
+			dsor_aux.util=0;
+			T cociente;
+			
+			while(ddo.util>=dsor.util)
+			{
+				cociente=ddo.p[ddo.util-1]/dsor.p[dsor.util-1];
+				aux.p[ddo.util-1-dsor.util+1]=cociente;
+				
+				for(int i=0; i<dsor_aux.res; i++)
+					dsor_aux.p[i]=0;
+				
+				for(int i=0; i<dsor.util; i++)
+					dsor_aux.p[i+(ddo.util-1-dsor.util+1)]=dsor.p[i]*cociente;
+				dsor_aux.util=dsor.util+(ddo.util-1-dsor.util+1);	//el util del dsor auxiliar ha aumentado
+				
+				ddo=ddo-dsor_aux;
+			}
+		return aux;
+}
+
+
+template<typename T>
+Polinomio<T> Polinomio<T>::operator%(const Polinomio &P) const {	//Mismo codigo pero devolviendo el ultimo dividendo
+	assert(util>P.util);
+
+			int util2=util-1;
+	
+			Polinomio aux;
+			aux.res=(util-P.util)*2;
+			aux.p=new T [aux.res];
+			aux.util=util-P.util+1;
+			
+			for(int i=0; i<aux.res; i++)
+				aux.p[i]=0;
+			
+			Polinomio ddo=*this;
+			Polinomio dsor=P;
+			Polinomio dsor_aux;	//divisor temporal para hacer cociente*divisor y restarselo al dividendo 
+			dsor_aux.res=ddo.util; 	//como mucho va a tener el mismo grado que le dividendo
+			dsor_aux.p=new T [dsor_aux.res];
+			dsor_aux.util=0;
+			T cociente;
+			
+			while(ddo.util>=dsor.util)
+			{
+				cociente=ddo.p[ddo.util-1]/dsor.p[dsor.util-1];
+				aux.p[ddo.util-1-dsor.util+1]=cociente;
+				
+				for(int i=0; i<dsor_aux.res; i++)
+					dsor_aux.p[i]=0;
+				
+				for(int i=0; i<dsor.util; i++)
+					dsor_aux.p[i+(ddo.util-1-dsor.util+1)]=dsor.p[i]*cociente;
+				dsor_aux.util=dsor.util+(ddo.util-1-dsor.util+1);	//el util del dsor auxiliar ha aumentado
+				
+				ddo=ddo-dsor_aux;
+			}
+		return ddo;
+}
+
+
+template<typename T>
+T Polinomio<T>::operator()(T n) const {
+	T suma=0;
+	
+	for(int i=0; i<util; i++)
+		suma=suma+p[i]*pow(n,i);
+	
+	return suma;
+}
+
+
+
+template<typename T>
+int Polinomio<T>::Grado() const {
+	return util-1;
+}
+
+
+
+template<typename T>
+T Polinomio<T>::Coef(int n) const {
+	assert(n<util);
+	return p[n-1];
+}
+
+
+
+template<typename U>
+ostream & operator<<(ostream &os, const Polinomio<U> & P){
+	if(P.p==0 || P.util==0)
+		os << 0 << endl;
+	else
+		for(int i=P.util-1; i>=0; i--)
+			if(P.p[i]!=0)
+			{				
+				if(P.p[i]<0)
+					os << "- " << P.p[i]*(-1) << " ";
+				else
+					{
+					if(i!=P.util-1)
+						os << "+ ";
+					os << P.p[i] << " ";
+					}
+				if(i!=0) os << "x^" << i << " ";
+			}
+	return os;
+}
